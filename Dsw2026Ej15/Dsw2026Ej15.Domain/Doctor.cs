@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Dsw2026Ej15.Domain
+{
+    internal class Doctor
+    {
+        private String Name;
+        private String LicenseNumber;
+        private bool IsActive;
+        private Speciality Speciality;
+
+    }
+}
