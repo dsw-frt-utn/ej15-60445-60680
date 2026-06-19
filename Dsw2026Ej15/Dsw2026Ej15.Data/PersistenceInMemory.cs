@@ -18,9 +18,21 @@ namespace Dsw2026Ej15.Data
             LoadSpecialities();
         }
 
+        public IEnumerable<Doctor> GetAllDoctors()
+        {
+            var doctors = _doctors.ToList();
+            return doctors;
+        }
+
+        public Doctor? GetDoctorById(Guid id)
+        {
+            return _doctors.FirstOrDefault(d => d.Id == id);
+        }
+
         public Speciality? GetSpecialityById(Guid id)
         {
-            return _specialities.SingleOrDefault(e=> e.Id == id);
+            Speciality? speciality = _specialities.FirstOrDefault(s => s.Id == id);
+            return speciality;
         }
 
         public void SaveDoctor(Doctor doctor)

@@ -1,8 +1,10 @@
 ﻿using Dsw2026Ej15.Api.Models;
 using Dsw2026Ej15.Domain.Entities;
+using Dsw2026Ej15.Domain.Exceptions;
 using Dsw2026Ej15.Domain.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+
 
 namespace Dsw2026Ej15.Api.Controllers;
 
@@ -16,25 +18,68 @@ public class DoctorController : ControllerBase
     {
         _persistence = persistence;
     }
+
     [HttpPost]//verbo
-    public async Task<ActionResult> CreateDoctor([FromBody]DoctorModel.Request request)//si no tengo nada definido en el metodo, cuando ejecuto viene vacio
+    public async Task<ActionResult> CreateDoctor([FromBody] DoctorModel.Request request)//si no tengo nada definido en el metodo, cuando ejecuto viene vacio
     {
         //metodo para la logica para validaciones
-        if(string.IsNullOrWhiteSpace(request.Name) ||
+        if (string.IsNullOrWhiteSpace(request.Name) ||
                 string.IsNullOrWhiteSpace(request.LicenseNumber))
         {
-            return BadRequest("Nombre y matricula son requeridos");
+            throw new ValidationException("Nombre y matricula son requeridos");
         }
 
         var speciality = _persistence.GetSpecialityById(request.SpecialityId);
 
         if (speciality == null)
-        { 
-            return BadRequest("Especialidad no existe");
+        {
+            throw new ValidationException("Especialidad no existe");
         }
 
         var doctor = new Doctor(request.Name, request.LicenseNumber, speciality);
         _persistence.SaveDoctor(doctor);
-            return Ok(); 
+        return Created();
+
     }
-}}
+    //segundo endpoint
+    [HttpGet]
+    public async Task<ActionResult> GetDoctors()
+    {
+        var doctors = _persistence
+            .GetAllDoctors()
+            .Where(d => d.IsActive);
+
+        return Ok(doctors);
+    }
+
+    [HttpGet("{id}")]
+    public ActionResult GetDoctorById(Guid id)
+    {
+        var doctor = _persistence.GetDoctorById(id);
+
+        if (doctor == null)
+        {
+            return NotFound("No se contro el medico o no esta activo");
+        }
+
+        var response = new DoctorModel.Response(
+            doctor.Name, doctor.LicenseNumber, doctor.Speciality?.Name);
+        return Ok(response);
+    }
+
+    [HttpDelete("{id}")]
+    public ActionResult DeleteDoctorById(Guid id)
+    {
+        var doctor = _persistence.GetDoctorById(id);
+
+        if (doctor == null)
+        {
+            return NotFound("No se contro el medico o no esta activo");
+        }
+
+        doctor.IsActive = false;
+        _persistence.SaveDoctor(doctor); 
+        return NoContent();
+    }
+
+}
