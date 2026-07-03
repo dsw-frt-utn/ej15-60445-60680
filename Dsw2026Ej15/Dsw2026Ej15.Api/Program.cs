@@ -2,6 +2,7 @@
 using Dsw2026Ej15.Api.Middleware;
 using Dsw2026Ej15.Data;
 using Dsw2026Ej15.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Dsw2026Ej15.Api
 {
@@ -13,10 +14,13 @@ namespace Dsw2026Ej15.Api
 
             // Add services to the container.
 
-            builder.Services.AddSingleton<IPersistence, PersistenceInMemory>();
+            builder.Services.AddScoped<IPersistence, PersistenceEf>();
             builder.Services.AddHealthChecks();
             builder.Services.AddControllers();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlServer(
+            builder.Configuration.GetConnectionString("DefaultConnection")));
 
             var app = builder.Build();
 
@@ -34,6 +38,8 @@ namespace Dsw2026Ej15.Api
             app.MapControllers();
             app.MapHealthChecks("/health-check");
             app.Run();
+
+            
         }
     }
 }
